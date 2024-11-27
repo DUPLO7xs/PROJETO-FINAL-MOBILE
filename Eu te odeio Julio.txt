@@ -1,0 +1,218 @@
+import React, { useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, Text, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native';
+
+export default function App() {
+  const [dicionario, setDicionario] = useState(false);
+  const [quiz, setQuiz] = useState(false);
+  const [praticaCodigo, setPraticaCodigo] = useState(false);
+  const [desafiosPronuncia, setDesafiosPronuncia] = useState(false);
+  const [dicas, setDicas] = useState(false);
+
+  // Estado do Quiz
+  const [perguntaQuiz, setPerguntaQuiz] = useState('');
+  const [respostaUsuario, setRespostaUsuario] = useState('');
+  const [respostaCorreta, setRespostaCorreta] = useState('');
+  const [resultadoQuiz, setResultadoQuiz] = useState('');
+  const [perguntaAtual, setPerguntaAtual] = useState(0); // Para controlar a pergunta atual
+  const [acertos, setAcertos] = useState(0); // Contador de acertos
+
+  // Lista de perguntas e respostas do Quiz (sem a pergunta sobre "let")
+  const perguntas = [
+    { pergunta: 'Qual o significado da palavra file? a)Pasta b)Arquivo', resposta: 'a)Arquivo' },
+    { pergunta: 'Qual o significado da palavra "merge" na programação? a)Mesclar b)Emergir', resposta: 'a)Mesclar' },
+    { pergunta: 'Qual a escrita correta da palavra que representa valores lógicos? a) Bolean b) Boolean', resposta: 'b) Boolean' },
+  ];
+
+  // Dicionário com palavras e suas definições
+  const dicionarioData = {
+    "console": "O console é um objeto usado para interagir com o ambiente de execução (como imprimir informações na tela).",
+    "let": "A palavra-chave let é usada para declarar variáveis em JavaScript com escopo de bloco.",
+    "function": "Uma função é um bloco de código projetado para realizar uma tarefa específica.",
+    "variable": "Uma variável é um espaço de armazenamento de dados, que pode ser alterado durante a execução do programa.",
+  };
+
+  // Estado da pesquisa no dicionário
+  const [palavraBusca, setPalavraBusca] = useState('');
+  const [definicao, setDefinicao] = useState('');
+
+  // Função de iniciar o quiz (mostra a primeira pergunta)
+  const iniciarQuiz = () => {
+    setPerguntaQuiz(perguntas[perguntaAtual].pergunta);
+    setRespostaCorreta(perguntas[perguntaAtual].resposta);
+    setQuiz(!quiz);  // Alterna a visibilidade da tela do quiz
+    setResultadoQuiz('');  // Reseta o resultado de respostas anteriores
+    setRespostaUsuario('');  // Limpa a resposta do usuário
+    setAcertos(0); // Reseta a contagem de acertos
+    setPerguntaAtual(0); // Reseta para a primeira pergunta
+  };
+
+  // Função para verificar a resposta
+  const verificarRespostaQuiz = () => {
+    if (respostaUsuario.toLowerCase() === respostaCorreta.toLowerCase()) {
+      setAcertos(acertos + 1); // Incrementa o contador de acertos
+      setResultadoQuiz('Resposta correta!');
+    } else {
+      setResultadoQuiz(`Resposta incorreta. A resposta correta é: ${respostaCorreta}`);
+    }
+  };
+
+  // Função para ir para a próxima pergunta
+  const proximaPergunta = () => {
+    if (perguntaAtual < perguntas.length - 1) {
+      setPerguntaAtual(perguntaAtual + 1); // Avança para a próxima pergunta
+      setRespostaUsuario(''); // Limpa a resposta do usuário
+      setResultadoQuiz(''); // Reseta o resultado
+      setPerguntaQuiz(perguntas[perguntaAtual + 1].pergunta); // Exibe a nova pergunta
+      setRespostaCorreta(perguntas[perguntaAtual + 1].resposta); // Atualiza a resposta correta
+    } else {
+      setResultadoQuiz(`Parabéns! Você acertou ${acertos} de ${perguntas.length} questões.`);
+    }
+  };
+
+  // Função para fechar o teclado
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
+  // Função de buscar a definição no dicionário
+  const buscarDefinicao = () => {
+    const resultado = dicionarioData[palavraBusca.toLowerCase()]; // Converte a palavra para minúsculas
+    if (resultado) {
+      setDefinicao(resultado);
+    } else {
+      setDefinicao('Palavra não encontrada no dicionário.');
+    }
+  };
+
+  return (
+    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Bem-vindo ao SwiftSpeak</Text>
+        <Text style={styles.subtitle}>Aprenda inglês com programação!</Text>
+
+        {/* Botão para alternar o dicionário */}
+        <TouchableOpacity style={styles.button} onPress={() => setDicionario(!dicionario)}>
+          <Text style={styles.buttonText}>1. Dicionário</Text>
+        </TouchableOpacity>
+        {dicionario && (
+          <View>
+            <Text style={styles.texto}>Digite uma palavra para pesquisa:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite uma palavra..."
+              onChangeText={setPalavraBusca}
+              value={palavraBusca}
+            />
+            <TouchableOpacity style={styles.button} onPress={buscarDefinicao}>
+              <Text style={styles.buttonText}>Buscar Definição</Text>
+            </TouchableOpacity>
+            {definicao && <Text style={styles.texto}>{definicao}</Text>}
+          </View>
+        )}
+
+        {/* Botão para alternar o quiz */}
+        <TouchableOpacity style={styles.button} onPress={iniciarQuiz}>
+          <Text style={styles.buttonText}>2. Quiz</Text>
+        </TouchableOpacity>
+        {quiz && (
+          <View>
+            <Text style={styles.texto}>{perguntaQuiz}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Sua resposta..."
+              onChangeText={setRespostaUsuario}
+              value={respostaUsuario}
+            />
+            <TouchableOpacity style={styles.button} onPress={verificarRespostaQuiz}>
+              <Text style={styles.buttonText}>Verificar Resposta</Text>
+            </TouchableOpacity>
+            {resultadoQuiz && (
+              <Text style={styles.texto}>{resultadoQuiz}</Text>
+            )}
+            {/* Botão para próxima pergunta */}
+            {perguntaAtual < perguntas.length - 1 ? (
+              <TouchableOpacity style={styles.button} onPress={proximaPergunta}>
+                <Text style={styles.buttonText}>Próxima Pergunta</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.button} onPress={() => setQuiz(false)}>
+                <Text style={styles.buttonText}>Finalizar Quiz</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Botão para alternar dicas */}
+        <TouchableOpacity style={styles.button} onPress={() => setDicas(!dicas)}>
+          <Text style={styles.buttonText}>3. Dicas</Text>
+        </TouchableOpacity>
+        {dicas && (
+          <Text style={styles.texto}>Aqui estão algumas dicas úteis para melhorar sua aprendizagem de programação!</Text>
+        )}
+
+        {/* Botão para alternar a prática de código */}
+        <TouchableOpacity style={styles.button} onPress={() => setPraticaCodigo(!praticaCodigo)}>
+          <Text style={styles.buttonText}>4. Prática de Código</Text>
+        </TouchableOpacity>
+        {praticaCodigo && (
+          <View>
+            <Text style={styles.texto}>Aqui você pode praticar seu código com exercícios!</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite seu código..."
+            />
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.buttonText}>Executar Código</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+      </View>
+    </TouchableWithoutFeedback>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 24,
+  },
+  button: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginVertical: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  texto: {
+    fontSize: 18,
+    color: '#333',
+    marginBottom: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 8,
+    width: '80%',
+    marginVertical: 8,
+  },
+});
